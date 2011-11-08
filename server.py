@@ -8,7 +8,7 @@ class DispatcherQueue(object):
         self.workqueue = queue.Queue()
         self.resultqueue = queue.Queue()
 	self.no_clients = 0
-	self.death = False
+	self.death = 0
 	#setup logging
 	logging.basicConfig(filename="dispatcher.log",level=logging.DEBUG)
     def putWork(self, item):
@@ -33,17 +33,16 @@ class DispatcherQueue(object):
     def Poison(self):
 	logging.info("Adding Poison to queue")
 	[self.putWork((i,"Poison")) for i in range(self.no_clients)]
-	self.death = True
     def add_log(self,x):
 	logging.info(x)
 
 def ns_setup(ns_host = "localhost", ns_port = 9090):
-	ns_host = "localhost"
-	ns_port = 9090
+#	ns_host = "localhost"
+#	ns_port = 9090
 	return Pyro4.naming.locateNS(host=ns_host, port=ns_port)
 
 def dispatcher_setup(ns_host = "localhost", ns_port = 9090):
-	ns = ns_setup(ns_host = "localhost", ns_port = 9090)
+	ns = ns_setup(ns_host,ns_port)
 
 	uri = ns.lookup("dispatcher")
 	return Pyro4.Proxy(uri)
@@ -59,8 +58,8 @@ def server_setup(ns_host = "localhost", ns_port = 9090,daemon_host = "localhost"
 	ns.register("dispatcher", uri)
 
 
-	logging.info("Dispatcher is ready.")
-	daemon.requestLoop(loopCondition = lambda: not dispatcher.death)
+	logging.info("Dispatcher is ready with nameserver on %s:%d"%(ns_host,ns_port))
+	daemon.requestLoop(lambda: not dispatcher.death)
 
 if __name__ == "__main__":
-	server_setup()		
+	server_setup("parsons01",9090,"parsons01",6969)		

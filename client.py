@@ -24,12 +24,12 @@ def client(dispatcher):
 
 		#print "got job:",
 		dispatcher.add_log("%d-client has job: %s"%(client_id,str(job)))
-		result = function(job)
-		#result = siesta.siesta_function("_".join([str(y) for y in job]),job)
+		#result = function(job)
+		result = siesta.siesta_function("_".join([str(y) for y in job]),job)
 		dispatcher.add_log("%d-client with job: %s has result: %s"%(client_id,str(job),str(result)))
 		#print result
 		dispatcher.putResult((id,result))
 
 if __name__ == "__main__":
-	dispatcher = server.dispatcher_setup()
+	dispatcher = server.dispatcher_setup("parsons01",9090)
 	client(dispatcher)

@@ -3,7 +3,7 @@ import Pyro4
 import server
 
 def run(jobs):
-	dispatcher = server.dispatcher_setup()
+	dispatcher = server.dispatcher_setup("parsons01",9090)
 	[dispatcher.putWork((i,jobs[i])) for i in range(len(jobs))]
 
 	while dispatcher.resultQueueSize() < len(jobs):
@@ -18,7 +18,7 @@ def run(jobs):
 if __name__ == "__main__":
 	jobs = range(10)
 	results = run(jobs)
-	dispatcher = server.dispatcher_setup()
+	dispatcher = server.dispatcher_setup("parsons01",9090)
 	dispatcher.Poison()
 	for r in results:
 		print r
