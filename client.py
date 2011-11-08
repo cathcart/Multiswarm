@@ -24,8 +24,8 @@ def client(dispatcher):
 
 		#print "got job:",
 		dispatcher.add_log("%d-client has job: %s"%(client_id,str(job)))
-		#result = function(job)
-		result = siesta.siesta_function("_".join([str(y) for y in job]),job)
+		result = function(job)
+		#result = siesta.siesta_function("_".join([str(y) for y in job]),job)
 		dispatcher.add_log("%d-client with job: %s has result: %s"%(client_id,str(job),str(result)))
 		#print result
 		dispatcher.putResult((id,result))
