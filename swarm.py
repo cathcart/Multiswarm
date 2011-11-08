@@ -173,6 +173,7 @@ def run(function,min_p,max_p,constants,procs):
 
     p=sorted(swarm,key=lambda x: x.cost)[0].position
     sed_file("final.sed",p)
+    print "Results:",
     return [math.sqrt(sum([i**2 for i in p])),p]
 
 if __name__ == "__main__":
@@ -189,6 +190,7 @@ if __name__ == "__main__":
     max_p=Vector(max_p_list)
 
     print run(lambda x :siesta.siesta_function("_".join([str(y) for y in x]),x),min_p,max_p,constants,8)
+    multi.poison()
 #  ans=run(N,iterations,1,min_p,max_p,lambda x :siesta.siesta_function("_".join([str(y) for y in x]),x))[1]
 #  print ans
 #  out=open("final","w")

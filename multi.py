@@ -15,10 +15,13 @@ def run(jobs):
 	#ensure results are returned in the same order they're put into the queue
 	return [y[1] for y in sorted(results,key=lambda x: x[0])]
 
+def poison():
+	dispatcher = server.dispatcher_setup("parsons01",9090)
+	dispatcher.Poison()
+
 if __name__ == "__main__":
 	jobs = range(10)
 	results = run(jobs)
-	dispatcher = server.dispatcher_setup("parsons01",9090)
-	dispatcher.Poison()
+	poison()
 	for r in results:
 		print r
