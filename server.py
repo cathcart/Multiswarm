@@ -5,6 +5,7 @@ class DispatcherQueue(object):
     def __init__(self):
         self.workqueue = queue.Queue()
         self.resultqueue = queue.Queue()
+	self.no_clients = 0
     def putWork(self, item):
         self.workqueue.put(item)
     def getWork(self, timeout=5):
@@ -17,22 +18,34 @@ class DispatcherQueue(object):
         return self.workqueue.qsize()
     def resultQueueSize(self):
         return self.resultqueue.qsize()
+    def checkin(self):
+	self.no_clients += 1
+	return self.no_clients
+	print "%d clients attached to the server" % self.no_clients
 
-def setup():
+def ns_setup(ns_host = "localhost", ns_port = 9090):
 	ns_host = "localhost"
 	ns_port = 9090
-	ns=Pyro4.naming.locateNS(host=ns_host, port=ns_port)
+	return Pyro4.naming.locateNS(host=ns_host, port=ns_port)
 
-	daemon_host = "localhost"
-	daemon_port = 6969 
-	daemon=Pyro4.core.Daemon(host=daemon_host, port=daemon_port)
+def dispatcher_setup(ns_host = "localhost", ns_port = 9090):
+	ns = ns_setup(ns_host = "localhost", ns_port = 9090)
 
-	dispatcher=DispatcherQueue()
-	uri=daemon.register(dispatcher)
-	ns.register("example.distributed.dispatcher", uri)
+	uri = ns.lookup("dispatcher")
+	return Pyro4.Proxy(uri)
+
+def server_setup(ns_host = "localhost", ns_port = 9090,daemon_host = "localhost", daemon_port = 6969):
+
+	ns = ns_setup(ns_host, ns_port)
+
+	daemon = Pyro4.core.Daemon(host=daemon_host, port=daemon_port)
+
+	dispatcher = DispatcherQueue()
+	uri = daemon.register(dispatcher)
+	ns.register("dispatcher", uri)
 	print("Dispatcher is ready.")
 	daemon.requestLoop()
 
 if __name__ == "__main__":
 	print "setup server"
-	setup()		
+	server_setup()		
