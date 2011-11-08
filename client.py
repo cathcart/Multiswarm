@@ -2,27 +2,30 @@ import Pyro4
 import time
 import server
 import siesta
+import logging
 
 def function(x):
 	return x**2
 
 def client(dispatcher):
-	dispatcher.checkin()
+	client_id = dispatcher.checkin()
+	dispatcher.add_log("hello from %d-client"%client_id)
 	while True:
 		while dispatcher.workQueueSize() == 0:
-			print "sleeping"
+			
 			time.sleep(1)
 
 		(id, job) = dispatcher.getWork()
 
 		if job == "Poison":
-			print "%d-client taking poison"
+			dispatcher.add_log("%d-client taking poison"%client_id)
 			dispatcher.checkout()
 			break
 
 		print "got job:",
-		print job,
+		dispatcher.add_log("%d-client has job: %s"%(client_id,str(job)))
 		result = function(job)
+		dispatcher.add_log("%d-client with job: %s has result: %s"%(client_id,str(job),str(result)))
 		#result = siesta.siesta_function("_".join([str(y) for y in job]),job)
 		print result
 		dispatcher.putResult((id,result))

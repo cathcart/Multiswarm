@@ -1,6 +1,7 @@
 import Pyro4
 import Queue as queue
 import time
+import logging
 
 class DispatcherQueue(object):
     def __init__(self):
@@ -8,6 +9,8 @@ class DispatcherQueue(object):
         self.resultqueue = queue.Queue()
 	self.no_clients = 0
 	self.death = 0
+	#setup logging
+	logging.basicConfig(filename="dispatcher.log",level=logging.DEBUG)
     def putWork(self, item):
         self.workqueue.put(item)
     def getWork(self, timeout=5):
@@ -22,14 +25,17 @@ class DispatcherQueue(object):
         return self.resultqueue.qsize()
     def checkin(self):
 	self.no_clients += 1
+	logging.info("%d clients attached to the server" % self.no_clients)
 	return self.no_clients
-	print "%d clients attached to the server" % self.no_clients
     def checkout(self):
 	self.no_clients -= 1
-	print "%d clients attached to the server" % self.no_clients
+	logging.info("%d clients attached to the server" % self.no_clients)
     def Poison(self):
+	logging.info("Adding Poison to queue")
 	[self.putWork((i,"Poison")) for i in range(self.no_clients)]
 	self.death = 1
+    def add_log(self,x):
+	logging.info(x)
 
 def ns_setup(ns_host = "localhost", ns_port = 9090):
 	ns_host = "localhost"
@@ -51,9 +57,10 @@ def server_setup(ns_host = "localhost", ns_port = 9090,daemon_host = "localhost"
 	dispatcher = DispatcherQueue()
 	uri = daemon.register(dispatcher)
 	ns.register("dispatcher", uri)
-	print("Dispatcher is ready.")
+
+
+	logging.info("Dispatcher is ready.")
 	daemon.requestLoop(lambda: not dispatcher.death)
 
 if __name__ == "__main__":
-	print "setup server"
 	server_setup()		
