@@ -1,11 +1,13 @@
 import Pyro4
 import Queue as queue
+import time
 
 class DispatcherQueue(object):
     def __init__(self):
         self.workqueue = queue.Queue()
         self.resultqueue = queue.Queue()
 	self.no_clients = 0
+	self.death = 0
     def putWork(self, item):
         self.workqueue.put(item)
     def getWork(self, timeout=5):
@@ -22,6 +24,12 @@ class DispatcherQueue(object):
 	self.no_clients += 1
 	return self.no_clients
 	print "%d clients attached to the server" % self.no_clients
+    def checkout(self):
+	self.no_clients -= 1
+	print "%d clients attached to the server" % self.no_clients
+    def Poison(self):
+	[self.putWork((i,"Poison")) for i in range(self.no_clients)]
+	self.death = 1
 
 def ns_setup(ns_host = "localhost", ns_port = 9090):
 	ns_host = "localhost"
@@ -44,7 +52,7 @@ def server_setup(ns_host = "localhost", ns_port = 9090,daemon_host = "localhost"
 	uri = daemon.register(dispatcher)
 	ns.register("dispatcher", uri)
 	print("Dispatcher is ready.")
-	daemon.requestLoop()
+	daemon.requestLoop(lambda: not dispatcher.death)
 
 if __name__ == "__main__":
 	print "setup server"
