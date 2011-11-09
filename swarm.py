@@ -89,12 +89,15 @@ def pickle_write(object):
 	output = open('swarm.pkl', 'wb')
 	# Pickle the list using the highest protocol available.
 	pickle.dump(object, output, -1)
+	output.close()
 	logging.info("Swarm has been pickled")
 
 def pickle_read():
 	pkl_file = open('swarm.pkl', 'rb')
 	logging.info("Loading swarm from pickle")
-	return pickle.load(pkl_file)
+	object = pickle.load(pkl_file)
+	pkl_file.close()
+	return object
 
 def distance(one,two):
     return math.sqrt(sum([(one[i]-two[i])**2 for i in range(len(one))]))
@@ -126,7 +129,7 @@ def my_function(parameters):
     [x1,x2]=parameters
     return 100*(x2-x1**2)**2+(1-x1)**2
 
-def run(function,min_p,max_p,constants,procs):
+def run(function,min_p,max_p,constants,load_data=False):
 #########################################################
 	"""
     run takes the following arguments:
@@ -188,8 +191,9 @@ def run(function,min_p,max_p,constants,procs):
 
 			for particle in group:
 				particle.update(min_position,group_position)
-	#save swarm to disk for safe keeping 
-	pickle_write(swarm)
+		logging.info("Particle positions and velocities update complete")
+		#save swarm to disk for safe keeping 
+		pickle_write(swarm)
 
 
 	p=sorted(swarm,key=lambda x: x.cost)[0].position
@@ -213,7 +217,7 @@ if __name__ == "__main__":
     max_p_list=[float(x[2]) for x in var_file]
     min_p=Vector(min_p_list)
     max_p=Vector(max_p_list)
-    print run(lambda x :siesta.siesta_function("_".join([str(y) for y in x]),x),min_p,max_p,constants,8)
+    print run(lambda x :siesta.siesta_function("_".join([str(y) for y in x]),x),min_p,max_p,constants,False)
     multi.poison()
 #  ans=run(N,iterations,1,min_p,max_p,lambda x :siesta.siesta_function("_".join([str(y) for y in x]),x))[1]
 #  print ans
