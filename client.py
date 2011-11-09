@@ -11,6 +11,7 @@ def function(x):
 def client(dispatcher):
 	client_id = dispatcher.checkin()
 	dispatcher.add_log("hello from %d-client"%client_id)
+	logging.info("hello from %d-client"%client_id)
 	while True:
 		while dispatcher.workQueueSize() == 0:
 			
@@ -20,6 +21,7 @@ def client(dispatcher):
 			(id, job) = dispatcher.getWork()
 		except Queue.Empty:
 			dispatcher.add_log("%d-client has problem getting item from queue"%(client_id))
+			logging.info("%d-client has problem getting item from queue"%(client_id))
 
 		if job == "Poison":
 			dispatcher.add_log("%d-client taking poison"%client_id)
@@ -39,4 +41,7 @@ def client(dispatcher):
 
 if __name__ == "__main__":
 	dispatcher = server.dispatcher_setup()
+	FORMAT="%(asctime)s %(message)s"
+	logging.basicConfig(filename="clients.log",level=logging.DEBUG, format=FORMAT)
+	logging.info("client check")
 	client(dispatcher)
