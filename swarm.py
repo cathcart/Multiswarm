@@ -3,6 +3,7 @@ import random
 import multiprocessing
 import siesta
 import multi
+import logging
 
 class Vector:
   def __class__(self):
@@ -42,6 +43,10 @@ class Particle:
 
     def update(self,min_position,group_position):
 
+	#print some info
+	logging.info("Updating particle %s position and velocity" %str(particle.position))
+	print "Updating particle %s position and velocity" %str(particle.position)
+	
         global_vector = min_position-self.position
         local_vector = self.local_min-self.position
         group_vector = group_position-self.position
@@ -160,6 +165,7 @@ def run(function,min_p,max_p,constants,procs):
     
         #update all the local extrema and decide the new global extrema
         min_position = sorted(swarm,key=lambda x: x.cost)[0].position
+        logging.info("Iteration: %d, global min: %s"%(iteration," ".join([str(x) for x in min_position])))
         print "Iteration: %d, global min: %s"%(iteration," ".join([str(x) for x in min_position]))
 	sed_file("best_so_far.sed",min_position)
         
@@ -177,18 +183,20 @@ def run(function,min_p,max_p,constants,procs):
     return [math.sqrt(sum([i**2 for i in p])),p]
 
 if __name__ == "__main__":
+    #setup logging 
+    logging.basicConfig(filename="swarm.log",level=logging.DEBUG)
     min_p=Vector([0,0])
     max_p=Vector([2,2])
     #constants=[23,500,1,0,2.8446,0,-0.3328]
-    constants=[2,2,1,0,2.8446,0,-0.3328]
-    print "let's go"
+    constants=[60,2000,1,0,2.9708,0,-0.27]
+    print "Running Siesta PSO with parameters %s" %str(constrants)
+    logging.info("Running Siesta PSO with parameters %s" %str(constrants))
     #print run(my_function,min_p,max_p,constants,2)
     var_file=siesta.list_variables()
     min_p_list=[float(x[1]) for x in var_file]
     max_p_list=[float(x[2]) for x in var_file]
     min_p=Vector(min_p_list)
     max_p=Vector(max_p_list)
-
     print run(lambda x :siesta.siesta_function("_".join([str(y) for y in x]),x),min_p,max_p,constants,8)
     multi.poison()
 #  ans=run(N,iterations,1,min_p,max_p,lambda x :siesta.siesta_function("_".join([str(y) for y in x]),x))[1]

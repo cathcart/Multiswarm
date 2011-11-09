@@ -14,6 +14,7 @@ class DispatcherQueue(object):
     def putWork(self, item):
         self.workqueue.put(item)
     def getWork(self, timeout=5):
+	self.add_log("getting work from queue")
         return self.workqueue.get(block=True, timeout=timeout)
     def putResult(self, item):
         self.resultqueue.put(item)
