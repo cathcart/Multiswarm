@@ -20,8 +20,8 @@ def new_input_file(parameters,var_names,file_name):
 
 def run_siesta(input_file,output_file):
   fin=open(input_file,"r")
-  #siesta="/home/cathcart/code/trunk-367/Obj/siesta"
-  siesta="/home/users/cathcart/code/siesta_serial/Obj/siesta"
+  siesta="/home/cathcart/code/trunk-367/Obj/siesta"
+  #siesta="/home/users/cathcart/code/siesta_serial/Obj/siesta"
   #run=subprocess.Popen([siesta],stdin=fin,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
   fout=open(output_file,"w")
   run=subprocess.Popen([siesta],stdin=fin,stdout=fout,stderr=subprocess.STDOUT,shell=True)

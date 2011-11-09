@@ -38,5 +38,5 @@ def client(dispatcher):
 			dispatcher.add_log("%d-client has problem adding items to the queue"%(client_id))
 
 if __name__ == "__main__":
-	dispatcher = server.dispatcher_setup("parsons01",9090)
+	dispatcher = server.dispatcher_setup()
 	client(dispatcher)
