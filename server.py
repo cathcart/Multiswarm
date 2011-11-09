@@ -72,4 +72,5 @@ def server_setup(ns_host = "localhost", ns_port = 9090,daemon_host = "localhost"
 	daemon.requestLoop(lambda: not dispatcher.death)
 
 if __name__ == "__main__":
+	Pyro4.config.THREADPOOL_MAXTHREADS = 100
 	server_setup()
