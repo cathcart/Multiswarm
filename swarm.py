@@ -44,8 +44,8 @@ class Particle:
     def update(self,min_position,group_position):
 
 	#print some info
-	logging.info("Updating particle %s position and velocity" %str(particle.position))
-	print "Updating particle %s position and velocity" %str(particle.position)
+	logging.info("Updating particle %s position and velocity" %str(self.position))
+	print "Updating particle %s position and velocity" %str(self.position)
 	
         global_vector = min_position-self.position
         local_vector = self.local_min-self.position
@@ -189,8 +189,8 @@ if __name__ == "__main__":
     max_p=Vector([2,2])
     #constants=[23,500,1,0,2.8446,0,-0.3328]
     constants=[60,2000,1,0,2.9708,0,-0.27]
-    print "Running Siesta PSO with parameters %s" %str(constrants)
-    logging.info("Running Siesta PSO with parameters %s" %str(constrants))
+    print "Running Siesta PSO with parameters %s" %str(constants)
+    logging.info("Running Siesta PSO with parameters %s" %str(constants))
     #print run(my_function,min_p,max_p,constants,2)
     var_file=siesta.list_variables()
     min_p_list=[float(x[1]) for x in var_file]
