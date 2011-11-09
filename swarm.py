@@ -4,6 +4,7 @@ import multiprocessing
 import siesta
 import multi
 import logging
+import pickle
 
 class Vector:
   def __class__(self):
@@ -84,6 +85,17 @@ def sed_file(name,X):
 	out.write(output_string)
 	out.close
 
+def pickle_write(object):
+	output = open('swarm.pkl', 'wb')
+	# Pickle the list using the highest protocol available.
+	pickle.dump(object, output, -1)
+	logging.info("Swarm has been pickled")
+
+def pickle_read():
+	pkl_file = open('swarm.pkl', 'rb')
+	logging.info("Loading swarm from pickle")
+	return pickle.load(pkl_file)
+
 def distance(one,two):
     return math.sqrt(sum([(one[i]-two[i])**2 for i in range(len(one))]))
 
@@ -116,7 +128,8 @@ def my_function(parameters):
 
 def run(function,min_p,max_p,constants,procs):
 #########################################################
-    """run takes the following arguments:
+	"""
+    run takes the following arguments:
     
     function:
     	the function the PSO is to minimise
@@ -139,48 +152,50 @@ def run(function,min_p,max_p,constants,procs):
     
     procs:
     	The number of processors that the PSO should use. PSO are almost 100% trivially parallel. The only serial calculations that are required is the calculation of the global min.
-    """
+	"""
 #########################################################
-    N = constants[0]
-    iterations = constants[1]
-    grouping_N = constants[2]
-    constants = constants[3:]
+	N = constants[0]
+	iterations = constants[1]
+	grouping_N = constants[2]
+	constants = constants[3:]
 
-    swarm=[]#list of swarm particles
+	swarm=[]#list of swarm particles
 
-    #initialise the particles
-    for particle in range(N):
-        swarm.append(Particle(min_p,max_p,constants))
+	#initialise the particles
+	if load_data:
+		swarm = pickle_read()
+	else:
+		for particle in range(N):
+			swarm.append(Particle(min_p,max_p,constants))
 
-    #distribute and calculate the value of the function at all of these points
-    min_position = min_p
+	#distribute and calculate the value of the function at all of these points
+	min_position = min_p
   
-    for iteration in range(iterations):
-  
-        #calculate the function at the particle positions
-        #cost_results = parmap2.parmap(function,[particle.position for particle in swarm],procs)
-        cost_results = multi.run([particle.position.data for particle in swarm])
-        #a set cost method isn't nice here but it does make the line shorter
-        [swarm[i].set_cost(cost_results[i]) for i in range(len(swarm))]
+	for iteration in range(iterations):
+
+		#calculate the function at the particle positions
+		cost_results = multi.run([particle.position.data for particle in swarm])
+		[swarm[i].set_cost(cost_results[i]) for i in range(len(swarm))]
+
+		#update all the local extrema and decide the new global extrema
+		min_position = sorted(swarm,key=lambda x: x.cost)[0].position
+		logging.info("Iteration: %d, global min: %s"%(iteration," ".join([str(x) for x in min_position])))
+		sed_file("best_so_far.sed",min_position)
     
-        #update all the local extrema and decide the new global extrema
-        min_position = sorted(swarm,key=lambda x: x.cost)[0].position
-        logging.info("Iteration: %d, global min: %s"%(iteration," ".join([str(x) for x in min_position])))
-        print "Iteration: %d, global min: %s"%(iteration," ".join([str(x) for x in min_position]))
-	sed_file("best_so_far.sed",min_position)
-        
-        groups=grouping(swarm,grouping_N)
-        for group in groups:
-            group_position=sorted(group,key=lambda x: x.cost)[0].position
+		groups=grouping(swarm,grouping_N)
+		for group in groups:
+			group_position=sorted(group,key=lambda x: x.cost)[0].position
 
-            for particle in group:
-                particle.update(min_position,group_position)
+			for particle in group:
+				particle.update(min_position,group_position)
+	#save swarm to disk for safe keeping 
+	pickle_write(swarm)
 
 
-    p=sorted(swarm,key=lambda x: x.cost)[0].position
-    sed_file("final.sed",p)
-    print "Results:",
-    return [math.sqrt(sum([i**2 for i in p])),p]
+	p=sorted(swarm,key=lambda x: x.cost)[0].position
+	sed_file("final.sed",p)
+	print "Results:",
+	return [math.sqrt(sum([i**2 for i in p])),p]
 
 if __name__ == "__main__":
     #setup logging 
@@ -188,7 +203,8 @@ if __name__ == "__main__":
     min_p=Vector([0,0])
     max_p=Vector([2,2])
     #constants=[23,500,1,0,2.8446,0,-0.3328]
-    constants=[60,2000,1,0,2.9708,0,-0.27]
+    #constants=[60,2000,1,0,2.9708,0,-0.27]
+    constants=[3,20,1,0,2.9708,0,-0.27]
     print "Running Siesta PSO with parameters %s" %str(constants)
     logging.info("Running Siesta PSO with parameters %s" %str(constants))
     #print run(my_function,min_p,max_p,constants,2)
