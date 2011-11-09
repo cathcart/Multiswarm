@@ -7,16 +7,22 @@ class DispatcherQueue(object):
     def __init__(self):
         self.workqueue = queue.Queue()
         self.resultqueue = queue.Queue()
-	self.no_clients = 0
+	self.no_clients = queue.Queue()
 	self.death = 0
 	#setup logging
-	logging.basicConfig(filename="dispatcher.log",level=logging.DEBUG)
+	FORMAT="%(asctime)s %(message)s"
+	logging.basicConfig(filename="dispatcher.log",level=logging.DEBUG, format=FORMAT)
     def putWork(self, item):
         self.workqueue.put(item)
+	self.add_log("Putting work from queue")
+	self.add_log("There are now %d+1 items in the work queue"%self.workqueue.qsize())
     def getWork(self, timeout=5):
-	self.add_log("getting work from queue")
+	self.add_log("Getting work from queue")
+	self.add_log("There are now %d-1 items in the work queue"%self.workqueue.qsize())
         return self.workqueue.get(block=True, timeout=timeout)
     def putResult(self, item):
+	self.add_log("Putting results in queue")
+	self.add_log("There are now %d+1 items in the result queue"%self.resultqueue.qsize())
         self.resultqueue.put(item)
     def getResult(self, timeout=5):
         return self.resultqueue.get(block=True, timeout=timeout)
@@ -25,15 +31,18 @@ class DispatcherQueue(object):
     def resultQueueSize(self):
         return self.resultqueue.qsize()
     def checkin(self):
-	self.no_clients += 1
-	logging.info("%d clients attached to the server" % self.no_clients)
-	return self.no_clients
+	self.no_clients.put(1)
+	id = self.no_clients.qsize()
+	logging.info("%d clients attached to the server" % id)
+	return id
     def checkout(self):
-	self.no_clients -= 1
-	logging.info("%d clients attached to the server" % self.no_clients)
+	g = self.no_clients.get()
+	id = self.no_clients.qsize()
+	logging.info("%d clients attached to the server" % id)
     def Poison(self):
 	logging.info("Adding Poison to queue")
-	[self.putWork((i,"Poison")) for i in range(self.no_clients)]
+	id = self.no_clients.qsize()
+	[self.putWork((i,"Poison")) for i in range(id)]
     def add_log(self,x):
 	logging.info(x)
 
@@ -63,4 +72,4 @@ def server_setup(ns_host = "localhost", ns_port = 9090,daemon_host = "localhost"
 	daemon.requestLoop(lambda: not dispatcher.death)
 
 if __name__ == "__main__":
-	server_setup("parsons01",9090,"parsons01",6969)		
+	server_setup()
