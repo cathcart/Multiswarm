@@ -2,6 +2,12 @@ import subprocess
 import os
 import shutil
 import glob
+import signal
+
+class Alarm(Exception):
+	pass
+def alarm_handler(signum, frame):
+	raise Alarm
 
 def list_variables():
   return [x.split() for x in  open("VARS").read().strip().split("\n")]
@@ -25,7 +31,13 @@ def run_siesta(input_file,output_file):
   #run=subprocess.Popen([siesta],stdin=fin,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
   fout=open(output_file,"w")
   run=subprocess.Popen([siesta],stdin=fin,stdout=fout,stderr=subprocess.STDOUT,shell=True)
-  output=run.communicate()[0]
+  signal.signal(signal.SIGALRM, alarm_handler)
+  signal.alarm(20)
+  try:
+    output=run.communicate()[0]
+    signal.alarm(0)
+  except Alarm:
+    print "Siesta timeout"
   fin.close()
   fout.close()
   output=open(output_file).read()
@@ -73,4 +85,5 @@ if __name__=="__main__":
   var_names=[x[0] for x in var_file]
   min_p_list=[float(x[1]) for x in var_file]
   max_p_list=[float(x[2]) for x in var_file]
-  print siesta_function("test",min_p_list)
+  print siesta_function("min_test",min_p_list)
+  print siesta_function("max_test",max_p_list)
