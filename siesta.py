@@ -37,6 +37,7 @@ def run_siesta(input_file,output_file):
     output=run.communicate()[0]
     signal.alarm(0)
   except Alarm:
+    run.terminate()
     print "Siesta timeout"
   fin.close()
   fout.close()
