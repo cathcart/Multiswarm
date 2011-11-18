@@ -53,6 +53,9 @@ def parse(siesta_output):
     print "ERROR: calculation failed. dumping last five lines"
     print "\n".join(siesta_output.split("\n")[-5::])
     return 9999
+  if siesta_output.find("* WARNING: effective split_norm is quite small. Orbitals will be very similar.") > 0:
+    print "* WARNING: effective split_norm is quite small. Orbitals will be very similar."
+    return 8888
   end=siesta_output.find("\n",start)
   ans=siesta_output[start:end].split()[-1]
   return float(ans)
